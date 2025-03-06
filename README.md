@@ -2,26 +2,9 @@
 Designing a structured data model, writing SQL queries to answer business questions and identifying data quality issues for Fetch Rewards.
 
 ## Overview
--- add short overview of 
-This is a small project on reviewing unstructure .json file and designging a structured relational data model using dbdiagram.io along with writing SQL queries to answer a few key business questions, identifying data quality issues such as missing values, duplicates, formatting, etc.. and communicating key insights to stakeholders.
+This is the small project challenhe where the primary objectives includes designing a structured relational data model to organize raw data effectively, assessing data quality by identifying issues such as missing values, duplicates, and inconsistent formats and developing SQL queries to answer business questions and validate data integrity. Additionally, a key component of the project was clear and effective communication with stakeholders, highlighting data insights, quality concerns, and requirements for further optimization. Overall, this project demonstrates technical skills in data engineering and analytics, as well as the ability to translate complex data findings into actionable insights and robust data solutions.
 
--- include the task breakdown in brief.
-- After reviewing unstructured data, developed a new Relational Data Model to represent how the data could be modeled in a data warehouse.
-- SQL queries written to answer following business questions.
-   - What are the top 5 brands by receipts scanned for most recent month?
-   - How does the ranking of the top 5 brands by receipts scanned for the recent month compare to the ranking for the previous month?
-   - When considering average spend from receipts with 'rewardsReceiptStatus’ of ‘Accepted’ or ‘Rejected’, which is greater?
-- Identifying data quality issues using python and pandas.
-- A well-written constructed email to business leader explaining my findings and approach to address the performance and anticipated scaling concerns 
-
-## Technologies Used:
-
-- Python, Pandas
-- SQL: PostgreSQL for data analysis
-- Diagram Tool: dbdiagram.io
-
-
-## Part one: Review json data and designig Relational Data Model
+## Part one: Review json data and designig Relational Data Model.
 This is the first part of the project which includes my understanding and assumptions of the provided datasets along with my approach behind designing a well structured Relational Data Model.
 
 1. Receipt Data Schema: Includes the transaction details of the users along with the date/time information, Rewards/bonus points details and the receipt item list. The attribute rewardsReceiptItemList is a nested array which contains the details on items information such as quantity purchased, date, reviews ans also partner id specifics 
@@ -76,10 +59,10 @@ This query calculates the average spend from receipts with a rewards_receipt_sta
 
 
 
-## Evaluate data quality issues in the given dataset.
+## Part three: Evaluate data quality issues in the given dataset.
 To identify data quality issues, I adopted a systematic approach using Python for data loading, normalization, and evaluation of potential data quality problems. The key steps in my approach included examining missing values, detecting duplicate records, and checking for inconsistencies in data formats. The python script could be found inside Data Quality/data_quality
 
-## communicate with stakeholder.
+## Part four: Communicate with Stakeholder.
 As the final part of this challenged, I have crafted a professional email to effectively communicate with stakeholders. My email covers the details on some questions about the data,
 identification of Data Quality Issues, information needed to resolve Data Quality Issues, support for Data Asset optimzation and anticipated performance and scaling concerns. My email is attached under stakeholder_communication_email/email_communication
 
