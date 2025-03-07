@@ -124,10 +124,22 @@ As the final part of this challenge, I have crafted a professional email to effe
 
 ## Setup Instructions:
 1. Clone the repository.
-2. Create the virtual env and install the dependencies using following commands:
-`python -m venv .fetch_challenge`
-`source .fetch_challenge/bin/activate`
-`pip install -r requirements.txt`
-`pip install --upgrade pip`
-3. Execute the my python script `fetch_rewards.py`
+2. Create the virtual environment using following command:
+      `python -m venv .fetch_challenge`
+3. Activate the virtual envrionment:
+      `source .fetch_challenge/bin/activate`
+4. Install the requirements and dependencies:
+      `pip install -r requirements.txt`
+5. To ensure you are using latest version of git, you may run:
+      `pip install --upgrade pip`
+6. Execute the python script:  ****fetch_rewards.py****
+
+      
+
+      
+
+      
+
+      
+
 
