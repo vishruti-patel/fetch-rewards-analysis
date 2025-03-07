@@ -1,2 +1,3 @@
-.fetch-rewards/*
+.fetch_challenge/*
 .DS_Store
+.SQL_queries/.DS_Store

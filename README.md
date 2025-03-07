@@ -2,7 +2,7 @@
 Designing a structured data model, writing SQL queries to answer business questions and identifying data quality issues for Fetch Rewards.
 
 ## Overview
-This is the small project challenhe where the primary objectives includes designing a structured relational data model to organize raw data effectively, assessing data quality by identifying issues such as missing values, duplicates, and inconsistent formats and developing SQL queries to answer business questions and validate data integrity. Additionally, a key component of the project was clear and effective communication with stakeholders, highlighting data insights, quality concerns, and requirements for further optimization. Overall, this project demonstrates technical skills in data engineering and analytics, as well as the ability to translate complex data findings into actionable insights and robust data solutions.
+This is the small project challenge where the primary objectives includes designing a structured relational data model to organize raw data effectively, assessing data quality by identifying issues such as missing values, duplicates, and inconsistent formats and developing SQL queries to answer business questions and validate data integrity. Additionally, a key component of the project was clear and effective communication with stakeholders, highlighting data insights, quality concerns, and requirements for further optimization. Overall, this project demonstrates technical skills in data engineering and analytics, as well as the ability to translate complex data findings into actionable insights and robust data solutions.
 
 ## Part one: Review json data and designig Relational Data Model.
 This is the first part of the project which includes my understanding and assumptions of the provided datasets along with my approach behind designing a well structured Relational Data Model.
@@ -19,7 +19,7 @@ This is the first part of the project which includes my understanding and assump
 The objective of the first part of this challenge is to design a structured Relational Data Model from the provided unstructured JSON data. I have used dbdiagram.io for designing the ER diagram. Below stated is my approach behind the data model.
 
 1. **Analyzing the JSON schema**: Using the basic information provided, I analyzed the datasets and found that 2 of the attributes (rewardsReceiptItemList, cpg) is a nested array.
-2. **Handling nested data**: The nested array RewardReceiptItemList in the receipts dataset contained detailed information about each purchased item, barcode, description, final_price, and other attributes. To normalize this data, I created a separate table receipt_items_data with a foreign key (receipt_id) linking it back to the Receipt table. Another attribute cpgs from Brands table is a nested array CPG containing $ref and $id, without additional details provided. Assuming the potential for future expansion of this data, I created another 'cpg' table with the cpg_id as a foreign key in the Brands table. This allows for potential integration with a more detailed Consumer Packaged Goods dataset.
+2. **Handling nested data**: The nested array 'RewardReceiptItemList' in the receipts dataset contained detailed information about each purchased item, barcode, description, final_price, and other attributes. To normalize this data, I created a separate table receipt_items_data with a foreign key (receipt_id) linking it back to the Receipt table. Another attribute cpgs from Brands table is a nested array CPG containing $ref and $id, without additional details provided. Assuming the potential for future expansion of this data, I created another 'cpg' table with the cpg_id as a foreign key in the Brands table. This allows for potential integration with a more detailed Consumer Packaged Goods dataset.
 3. **Identifying Key Entities and Relationships**: After handling the nested attributes with the above stated assumptions, I concluded main entities of this challenge: Users data, receipts data, receipt_items_data, brands data, cpgs_data along with the Primary Keys and Foreign Keys for each table as shown in the ER diagram. Moreover, I idenitfied one-to-many relationships among each entities as displayed in the screenshot below.
 4. **Designing the ER diagram**: To illustrate the relational data model, I used dbdiagram.io. 
 
@@ -28,14 +28,15 @@ The objective of the first part of this challenge is to design a structured Rela
 
 
 ## Part two: SQL queries to answer questions from the business stakeholder.
-For the second part of the challenge, I have utilized MySQL Workbench to write SQL queries that addressed specific business questions. I began by writing Python script to convert the provided JSON files into csv format for the ease of importing data into MySQL. This approach enables seamless data ingestion into MySQL Workbench. The conversion script is included in the SQL_queries/csv/json_to_csv.
+For the second part of the challenge, I have utilized MySQL Workbench to write SQL queries that addressed specific business questions. I began by writing Python script to convert the provided JSON files into csv format for the ease of importing data into MySQL. This approach enables seamless data ingestion into MySQL Workbench. 
 
 The Python script automates the extraction and transformation of data from nested JSON files into a structured CSV format. Key steps of the scripts are:
+- creating a folder SQL_queries if not present, to store the csv files.
 - load_mongo_json function loads the JSON data from the MongoDB export and parse each line as a separate JSON object.
-- The segregate_data function segregates data into five CSV files which will be generated after running the script sucessfully.
+- The segregate_data function segregates data into five CSV files and stores it into SQL_queries folder.
 - convet_mongo_date function converts MongoDB $date timestaps to SQL format.
 
-As the next step, I developed a second Python script to automate the upload of these CSV files into MySQL Workbench. I have used Pandas to read the CSV files and replace 'NaN' values with 'None' to handle 'NULL' values in MySQL. Using MySQL Connector, I established a connection to the database and executed INSERT queries to load data into the respective tables.
+As the next step, I wrote a class to automate the upload of these CSV files into MySQL Workbench. I have used Pandas to read the CSV files and replace 'NaN' values with 'None' to handle 'NULL' values in MySQL. Using MySQL Connector, I established a connection to the database and executed INSERT queries to load data into the respective tables.
 
 After susccefully importing the csv files to MYSQL workbench, I wrote following queries to answer the stakeholder questions:
 - When considering total number of items purchased from receipts with 'rewardsReceiptStatus’ of ‘Accepted’ or ‘Rejected’, which is greater?
@@ -59,13 +60,74 @@ WHERE rewards_receipt_status IN ('Accepted', 'Rejected')
 GROUP BY rewards_receipt_status;
 ```
 
+- Top 5 Brands by Receipts Scanned for the Most Recent Month
+To get the top 5 brands by receipts scanned in the most recent month, I used join operation to join the relevant tables (brands_data, receipts_data, and receipt_items_data) and filter based on the most recent month.
+```sql
+ WITH recent_month_receipts AS (
+    SELECT r.r_id, r.date_scanned, ri.barcode
+    FROM receipts_data r
+    JOIN receipt_items_data ri ON r.r_id = ri.receipt_id
+    WHERE r.date_scanned >= DATE_TRUNC('month', CURRENT_DATE) -- Filter for the most recent month
+)
+SELECT b.name AS brand_name, COUNT(DISTINCT rr.r_id) AS receipts_scanned
+FROM recent_month_receipts rr
+JOIN brands_data b ON rr.barcode = b.barcode
+GROUP BY b.brand_id
+ORDER BY receipts_scanned DESC
+LIMIT 5;
+```
+
+- Ranking of the top 5 brands by receipts scanned for the recent month compare to the ranking for the previous month.
+To compare the ranking for the most recent month to the previous month, I have used CASE statement and UNION to combine the data for both months, and then ranked them.
+
+```sql
+WITH month_receipts AS (
+    SELECT 
+        r.r_id, 
+        r.date_scanned, 
+        ri.barcode,
+        CASE 
+            WHEN r.date_scanned >= DATE_TRUNC('month', CURRENT_DATE) THEN 'recent'
+            WHEN r.date_scanned >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' THEN 'previous'
+        END AS month_type
+    FROM receipts_data r
+    JOIN receipt_items_data ri ON r.r_id = ri.receipt_id
+    WHERE r.date_scanned >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+)
+, monthly_brand_receipts AS (
+    SELECT 
+        rr.month_type, 
+        b.name AS brand_name, 
+        COUNT(DISTINCT rr.r_id) AS receipts_scanned
+    FROM month_receipts rr
+    JOIN brands_data b ON rr.barcode = b.barcode
+    GROUP BY rr.month_type, b.brand_id
+)
+SELECT 
+    month_type,
+    brand_name,
+    receipts_scanned,
+    RANK() OVER (PARTITION BY month_type ORDER BY receipts_scanned DESC) AS brand_rank
+FROM monthly_brand_receipts
+WHERE month_type IN ('recent', 'previous')
+ORDER BY month_type, brand_rank;
+
+```
 
 
 ## Part three: Evaluate data quality issues in the given dataset.
-To identify data quality issues, I adopted a systematic approach using Python for data loading, normalization, and evaluation of potential data quality problems. The key steps in my approach included examining missing values, detecting duplicate records, and checking for inconsistencies in data formats. The python script could be found inside Data Quality/data_quality
+To identify data quality issues, I adopted a systematic approach using Python for data loading, normalization, and evaluation of potential data quality problems.  The key steps in my approach included examining missing values, detecting duplicate records, and checking for inconsistencies in data formats. 
 
 ## Part four: Communicate with Stakeholder.
-As the final part of this challenged, I have crafted a professional email to effectively communicate with stakeholders. My email covers the details on some questions about the data,
-identification of Data Quality Issues, information needed to resolve Data Quality Issues, support for Data Asset optimzation and anticipated performance and scaling concerns. My email is attached under stakeholder_communication_email/email_communication
+As the final part of this challenge, I have crafted a professional email to effectively communicate with stakeholders. My email covers the details on some questions about the data, identification of Data Quality Issues, information needed to resolve Data Quality Issues, support for Data Asset optimzation and anticipated performance and scaling concerns. My email is attached under stakeholder_communication_email/email_communication
 
+
+## Setup Instructions:
+1. Clone the repository.
+2. Create the virtual env and install the dependencies using following commands:
+`python -m venv .fetch_challenge`
+`source .fetch_challenge/bin/activate`
+`pip install -r requirements.txt`
+`pip install --upgrade pip`
+3. Execute the my python script `fetch_rewards.py`
 
